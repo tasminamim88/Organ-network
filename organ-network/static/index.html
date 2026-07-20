@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Organ Network — Donation & Procurement Management</title>
+<style>
+  :root{
+    --bg:#eef2f1; --panel:#ffffff; --panel2:#f4f7f6; --border:#dde5e2;
+    --text:#0f1c18; --mut:#5f6f69; --accent:#059669; --accent-dark:#047857;
+    --green:#059669; --amber:#d97706; --red:#dc2626; --teal:#0d9488;
+    --shadow:0 1px 2px rgba(16,40,32,.06),0 4px 14px rgba(16,40,32,.05);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5}
+  header{padding:16px 26px;background:var(--panel);border-top:4px solid var(--accent);
+         border-bottom:1px solid var(--border);box-shadow:var(--shadow);display:flex;
+         align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  header h1{margin:0;font-size:19px;font-weight:800;letter-spacing:-.2px}
+  header .sub{color:var(--mut);font-size:12.5px}
+  .who{font-size:13px;color:var(--mut)}
+  .who b{color:var(--text)}
+  .wrap{max-width:1160px;margin:0 auto;padding:22px 26px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;min-width:0;box-shadow:var(--shadow)}
+  h2{font-size:15px;font-weight:700;margin:0 0 14px;letter-spacing:-.1px;
+     padding-left:10px;border-left:3px solid var(--accent)}
+  label{display:block;font-size:11px;color:var(--mut);margin:9px 0 4px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+  input,select{width:100%;background:#fff;color:var(--text);border:1px solid var(--border);
+        border-radius:9px;padding:9px 10px;font-size:13.5px;transition:border-color .15s,box-shadow .15s}
+  input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(5,150,105,.15)}
+  .row{display:flex;gap:10px;flex-wrap:wrap}.row>div{flex:1;min-width:120px}
+  button{margin-top:12px;padding:9px 15px;border:0;border-radius:9px;background:var(--accent);
+        color:#fff;font-weight:700;font-size:13.5px;cursor:pointer;transition:background .15s,transform .05s;
+        box-shadow:0 1px 2px rgba(5,150,105,.25)}
+  button:hover{background:var(--accent-dark)}
+  button:active{transform:translateY(1px)}
+  button.sm{margin:0;padding:6px 12px;font-size:12.5px}
+  button.green{background:var(--green)}button.green:hover{background:var(--accent-dark)}
+  button.teal{background:var(--teal)}button.teal:hover{filter:brightness(.94)}
+  button.ghost{background:#fff;color:var(--accent);border:1px solid var(--border);font-weight:600;box-shadow:none}
+  button.ghost:hover{background:var(--panel2);border-color:var(--accent)}
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+  @media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;
+        box-shadow:var(--shadow);border-top:3px solid var(--accent)}
+  .stat .n{font-size:28px;font-weight:800;color:var(--accent);line-height:1}
+  .stat .l{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px;margin-top:6px;font-weight:600}
+  /* task tab bar */
+  .nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;background:var(--panel);
+       border:1px solid var(--border);border-radius:14px;padding:7px;box-shadow:var(--shadow)}
+  .nav button{margin:0;background:transparent;color:var(--mut);border:0;font-weight:600;
+       padding:9px 16px;border-radius:9px;box-shadow:none}
+  .nav button:hover{background:var(--panel2);color:var(--text)}
+  .nav button.active{background:var(--accent);color:#fff}
+  .panel.hidden{display:none}
+  .formcard{max-width:680px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:8px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+  th{color:var(--mut);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.3px}
+  tr:last-child td{border-bottom:none}
+  .pill{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:999px;
+        border:1px solid var(--border);color:var(--mut);background:var(--panel2)}
+  .pill.available,.pill.waiting{color:#047857;border-color:#a7f3d0;background:#ecfdf5}
+  .pill.allocated,.pill.matched{color:#b45309;border-color:#fde68a;background:#fffbeb}
+  .pill.transplanted{color:#1d4ed8;border-color:#bfdbfe;background:#eff6ff}
+  .u{font-weight:800}
+  .u5{color:#dc2626}.u4{color:#ea580c}.u3{color:#ca8a04}.u2{color:#2563eb}.u1{color:#059669}
+  .msg{font-size:12.5px;margin-top:8px;min-height:16px}.msg.err{color:var(--red)}.msg.ok{color:var(--green)}
+  .hidden{display:none}.muted{color:var(--mut);font-size:12.5px}
+  .tabs{display:flex;gap:8px;margin-bottom:14px}
+  .tabs button{margin:0;background:var(--panel2);color:var(--mut);border:1px solid var(--border);font-weight:600;box-shadow:none}
+  .tabs button:hover{background:#e9efed}
+  .tabs button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .chk{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+  .chk label{display:flex;align-items:center;gap:5px;margin:0;text-transform:none;color:var(--text);
+        font-size:12.5px;background:var(--panel2);border:1px solid var(--border);padding:5px 9px;border-radius:8px;cursor:pointer;font-weight:500}
+  .chk label:hover{border-color:var(--accent)}
+  .chk input{width:auto;accent-color:var(--accent)}
+  .cand{background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:9px 11px;margin-top:8px;
+        display:flex;justify-content:space-between;align-items:center;gap:8px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Organ Donation &amp; Procurement Network</h1>
+    <div class="sub">Match donated organs to waiting patients by medical compatibility.</div>
+  </div>
+  <div id="session" class="who"></div>
+</header>
+
+<div class="wrap">
+  <!-- AUTH -->
+  <div class="card formcard" id="authCard">
+    <div class="tabs">
+      <button id="tabLogin" class="active" onclick="showTab('login')">Log in</button>
+      <button id="tabReg" onclick="showTab('register')">Create account</button>
+    </div>
+    <div id="loginForm">
+      <div class="row">
+        <div><label>Email</label><input id="li_email" type="email" placeholder="admin@organnet.local"></div>
+        <div><label>Password</label><input id="li_pass" type="password" placeholder="admin123"></div>
+      </div>
+      <button onclick="login()">Log in</button>
+      <div class="msg muted">Demo admin — email <b>admin@organnet.local</b>, password <b>admin123</b></div>
+      <div class="msg" id="li_msg"></div>
+    </div>
+    <div id="registerForm" class="hidden">
+      <div class="row">
+        <div><label>Name</label><input id="rg_name"></div>
+        <div><label>Role</label><select id="rg_role">
+          <option value="coordinator">Coordinator (hospital / OPO staff)</option>
+          <option value="donor">Donor</option>
+          <option value="patient">Patient</option>
+          <option value="admin">Admin</option></select></div>
+      </div>
+      <div class="row">
+        <div><label>Email</label><input id="rg_email" type="email"></div>
+        <div><label>Password (6+)</label><input id="rg_pass" type="password"></div>
+      </div>
+      <button onclick="register()">Create account</button>
+      <div class="msg" id="rg_msg"></div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="app" class="hidden">
+    <div class="stats" id="stats"></div>
+
+    <!-- one tab per task -->
+    <div class="nav" id="nav">
+      <button data-tab="donor"   class="active" onclick="showAppTab('donor')">Register Donor</button>
+      <button data-tab="patient" onclick="showAppTab('patient')">Register Patient</button>
+      <button data-tab="organs"  onclick="showAppTab('organs')">Organs &amp; Matching</button>
+      <button data-tab="wait"    onclick="showAppTab('wait')">Waiting List</button>
+      <button data-tab="alloc"   onclick="showAppTab('alloc')">Allocations</button>
+    </div>
+
+    <!-- TAB: register donor -->
+    <div class="panel" data-panel="donor">
+      <div class="card formcard">
+        <h2>Register a donor</h2>
+        <div class="row">
+          <div><label>Name</label><input id="dn_name"></div>
+          <div><label>Blood group</label><select id="dn_blood"></select></div>
+        </div>
+        <div class="row">
+          <div><label>Age</label><input id="dn_age" type="number" min="0" value="35"></div>
+          <div><label>Hospital</label><select id="dn_hosp"></select></div>
+        </div>
+        <label>Organs pledged</label>
+        <div class="chk" id="dn_organs"></div>
+        <button onclick="registerDonor()">Register donor</button>
+        <div class="msg" id="dn_msg"></div>
+      </div>
+    </div>
+
+    <!-- TAB: register patient -->
+    <div class="panel hidden" data-panel="patient">
+      <div class="card formcard">
+        <h2>Register a patient (waiting list)</h2>
+        <div class="row">
+          <div><label>Name</label><input id="pt_name"></div>
+          <div><label>Blood group</label><select id="pt_blood"></select></div>
+        </div>
+        <div class="row">
+          <div><label>Organ needed</label><select id="pt_organ"></select></div>
+          <div><label>Urgency (1–5)</label><select id="pt_urg">
+            <option value="5">5 – critical</option><option value="4">4 – high</option>
+            <option value="3" selected>3 – medium</option><option value="2">2 – low</option>
+            <option value="1">1 – routine</option></select></div>
+        </div>
+        <label>Hospital</label><select id="pt_hosp"></select>
+        <button onclick="registerPatient()">Add to waiting list</button>
+        <div class="msg" id="pt_msg"></div>
+      </div>
+    </div>
+
+    <!-- TAB: organs & matching -->
+    <div class="panel hidden" data-panel="organs">
+      <div class="card">
+        <h2>Available organs — find &amp; allocate</h2>
+        <div id="organList"><p class="muted">Loading…</p></div>
+      </div>
+    </div>
+
+    <!-- TAB: waiting list -->
+    <div class="panel hidden" data-panel="wait">
+      <div class="card">
+        <h2>Waiting list</h2>
+        <div id="waitList"><p class="muted">Loading…</p></div>
+      </div>
+    </div>
+
+    <!-- TAB: allocations -->
+    <div class="panel hidden" data-panel="alloc">
+      <div class="card">
+        <h2>Allocations</h2>
+        <div id="allocList"><p class="muted">Loading…</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const BLOOD=["O","A","B","AB"];
+const ORGANS=["kidney","liver","heart","lung","pancreas","cornea","intestine"];
+let TOKEN=localStorage.getItem('on_token')||null;
+let USER=JSON.parse(localStorage.getItem('on_user')||'null');
+let HOSPITALS=[];
+const $=id=>document.getElementById(id);
+const isStaff=()=>USER&&(USER.role==='coordinator'||USER.role==='admin');
+
+async function api(path,{method='GET',body=null,auth=false}={}){
+  const h={'Content-Type':'application/json'};
+  if(auth&&TOKEN) h['Authorization']='Bearer '+TOKEN;
+  const r=await fetch(path,{method,headers:h,body:body?JSON.stringify(body):null});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.detail||('Error '+r.status));
+  return d;
+}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// --- auth tabs ---
+function showTab(w){
+  $('loginForm').classList.toggle('hidden',w!=='login');
+  $('registerForm').classList.toggle('hidden',w!=='register');
+  $('tabLogin').classList.toggle('active',w==='login');
+  $('tabReg').classList.toggle('active',w==='register');
+}
+// --- app task tabs ---
+function showAppTab(name){
+  document.querySelectorAll('#app .panel').forEach(p=>p.classList.toggle('hidden',p.dataset.panel!==name));
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
+}
+
+function setSession(t,u){TOKEN=t;USER=u;localStorage.setItem('on_token',t);localStorage.setItem('on_user',JSON.stringify(u));render();}
+function logout(){TOKEN=null;USER=null;localStorage.removeItem('on_token');localStorage.removeItem('on_user');render();}
+
+async function register(){
+  const m=$('rg_msg');m.textContent='';m.className='msg';
+  try{const d=await api('/auth/register',{method:'POST',body:{
+    name:$('rg_name').value,email:$('rg_email').value,password:$('rg_pass').value,role:$('rg_role').value}});
+    setSession(d.access_token,d.user);}catch(e){m.textContent=e.message;m.className='msg err';}
+}
+async function login(){
+  const m=$('li_msg');m.textContent='';m.className='msg';
+  try{const d=await api('/auth/login',{method:'POST',body:{email:$('li_email').value,password:$('li_pass').value}});
+    setSession(d.access_token,d.user);}catch(e){m.textContent=e.message;m.className='msg err';}
+}
+
+function fillSelects(){
+  const opt=a=>a.map(v=>`<option value="${v}">${v}</option>`).join('');
+  $('dn_blood').innerHTML=opt(BLOOD); $('pt_blood').innerHTML=opt(BLOOD); $('pt_organ').innerHTML=opt(ORGANS);
+  $('dn_organs').innerHTML=ORGANS.map(o=>`<label><input type="checkbox" value="${o}">${o}</label>`).join('');
+  const hopt=`<option value="">—</option>`+HOSPITALS.map(h=>`<option value="${h.id}">${esc(h.name)}</option>`).join('');
+  $('dn_hosp').innerHTML=hopt; $('pt_hosp').innerHTML=hopt;
+}
+async function registerDonor(){
+  const m=$('dn_msg');m.textContent='';m.className='msg';
+  const organs=[...$('dn_organs').querySelectorAll('input:checked')].map(c=>c.value);
+  try{
+    await api('/donors',{method:'POST',auth:true,body:{
+      name:$('dn_name').value,blood_type:$('dn_blood').value,
+      age:parseInt($('dn_age').value||'0',10),
+      hospital_id:$('dn_hosp').value?parseInt($('dn_hosp').value,10):null,organs}});
+    m.textContent='Donor registered ✔  (open the Organs & Matching tab to release their organs)';m.className='msg ok';
+    $('dn_name').value=''; $('dn_organs').querySelectorAll('input:checked').forEach(c=>c.checked=false);
+    refresh();
+  }catch(e){m.textContent=e.message;m.className='msg err';}
+}
+async function registerPatient(){
+  const m=$('pt_msg');m.textContent='';m.className='msg';
+  try{
+    await api('/patients',{method:'POST',auth:true,body:{
+      name:$('pt_name').value,blood_type:$('pt_blood').value,organ_needed:$('pt_organ').value,
+      urgency:parseInt($('pt_urg').value,10),
+      hospital_id:$('pt_hosp').value?parseInt($('pt_hosp').value,10):null}});
+    m.textContent='Added to waiting list ✔';m.className='msg ok';$('pt_name').value='';
+    refresh();
+  }catch(e){m.textContent=e.message;m.className='msg err';}
+}
+async function releaseDonor(id){try{await api('/donors/'+id+'/release',{method:'POST',auth:true});refresh();}catch(e){alert(e.message);}}
+async function findCandidates(organId){
+  const box=$('cand_'+organId);
+  try{
+    const cands=await api('/organs/'+organId+'/candidates',{auth:true});
+    if(!cands.length){box.innerHTML='<div class="muted" style="margin-top:8px">No compatible waiting patients.</div>';return;}
+    box.innerHTML=cands.map(p=>`<div class="cand">
+      <span>${esc(p.name)} · <span class="pill">${p.blood_type}</span> · needs ${esc(p.organ_needed)} ·
+        <span class="u u${p.urgency}">urgency ${p.urgency}</span></span>
+      <button class="sm green" onclick="allocate(${organId},${p.id})">Allocate</button></div>`).join('');
+  }catch(e){box.innerHTML='<div class="msg err">'+esc(e.message)+'</div>';}
+}
+async function allocate(organId,patientId){
+  try{await api('/allocations',{method:'POST',auth:true,body:{organ_id:organId,patient_id:patientId}});refresh();}
+  catch(e){alert(e.message);}
+}
+async function transplant(id){try{await api('/allocations/'+id+'/transplant',{method:'POST',auth:true});refresh();}catch(e){alert(e.message);}}
+
+async function loadStats(){
+  const s=await api('/stats');
+  const tiles=[['Donors',s.donors],['Available organs',s.available_organs],['Waiting patients',s.waiting_patients],
+    ['Allocated',s.allocations],['Transplanted',s.transplants]];
+  $('stats').innerHTML=tiles.map(([l,n])=>`<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+}
+async function loadOrgans(){
+  const list=await api('/organs/available');
+  if(!list.length){$('organList').innerHTML='<p class="muted">No organs in the pool. Register a donor, then click <b>Release organs</b> on them below.</p>';}
+  else $('organList').innerHTML=list.map(o=>`<div style="border-bottom:1px solid var(--border);padding:10px 0">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <span><b>${esc(o.organ_type)}</b> · donor ${esc(o.donor_name)} <span class="pill">${o.donor_group}</span></span>
+        ${isStaff()?`<button class="sm ghost" onclick="findCandidates(${o.id})">Find matches</button>`:''}
+      </div><div id="cand_${o.id}"></div></div>`).join('');
+  const donors=await api('/donors');
+  const pending=donors.filter(d=>d.status==='registered');
+  if(isStaff()&&pending.length){
+    $('organList').innerHTML+=`<div style="margin-top:12px" class="muted">Registered donors (release organs to the pool):</div>`+
+      pending.map(d=>`<div class="cand"><span>${esc(d.name)} <span class="pill">${d.blood_type}</span></span>
+        <button class="sm teal" onclick="releaseDonor(${d.id})">Release organs</button></div>`).join('');
+  }
+}
+async function loadWait(){
+  const list=await api('/patients');
+  $('waitList').innerHTML=list.length?`<table><tr><th>Patient</th><th>Blood</th><th>Needs</th><th>Urgency</th></tr>`+
+    list.map(p=>`<tr><td>${esc(p.name)}</td><td>${p.blood_type}</td><td>${esc(p.organ_needed)}</td>
+      <td class="u u${p.urgency}">${p.urgency}</td></tr>`).join('')+`</table>`
+    :'<p class="muted">Waiting list is empty.</p>';
+}
+async function loadAllocs(){
+  const list=await api('/allocations');
+  $('allocList').innerHTML=list.length?`<table><tr><th>Organ</th><th>Donor→Patient</th><th>Status</th><th></th></tr>`+
+    list.map(a=>`<tr><td>${esc(a.organ_type)}</td><td>${esc(a.donor_name)} → ${esc(a.patient_name)}</td>
+      <td><span class="pill ${a.status}">${a.status}</span></td>
+      <td>${isStaff()&&a.status==='allocated'?`<button class="sm green" onclick="transplant(${a.id})">Mark transplanted</button>`:''}</td></tr>`).join('')+`</table>`
+    :'<p class="muted">No allocations yet.</p>';
+}
+function refresh(){loadStats();loadOrgans();loadWait();loadAllocs();}
+
+async function render(){
+  const authed=!!TOKEN;
+  $('authCard').classList.toggle('hidden',authed);
+  $('app').classList.toggle('hidden',!authed);
+  $('session').innerHTML=authed
+    ?`Signed in as <b>${esc(USER.name)}</b> (${esc(USER.role)}) &nbsp;<button class="ghost sm" onclick="logout()">Log out</button>`:'';
+  if(authed){
+    try{HOSPITALS=await api('/hospitals');}catch(e){HOSPITALS=[];}
+    fillSelects(); showAppTab('donor'); refresh();
+  }
+}
+render();
+</script>
+</body>
+</html>
